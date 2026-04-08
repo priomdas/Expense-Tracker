@@ -862,7 +862,8 @@
   <!-- AUTHENTICATION -->
   <div id="onboarding">
     <div class="onboarding-card">
-      <div class="onboarding-logo">Ledger</div>
+      <img src="logo.png" alt="Ledger Logo" style="width: 72px; height: 72px; margin: 0 auto 12px; display: block; border-radius:18px; object-fit:cover; box-shadow:var(--shadow);">
+      <div class="onboarding-logo" style="margin-bottom:2px;">Ledger</div>
       <p class="onboarding-tagline">Your personal finance companion</p>
       
       <div id="authSection">
@@ -886,7 +887,17 @@
           <option value="MYR">RM MYR — Malaysian Ringgit</option>
         </select>
         <button class="ob-btn" id="authBtn" onclick="handleAuth()">Sign In</button>
-        <div style="margin-top:18px; font-size:0.9rem; color:var(--text2); cursor:pointer;" onclick="toggleAuthMode()">
+        
+        <div style="margin: 20px 0; display:flex; align-items:center; gap: 8px; color:var(--text3); font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; font-weight:600;">
+          <div style="flex:1; height:1px; background:var(--border);"></div> OR <div style="flex:1; height:1px; background:var(--border);"></div>
+        </div>
+        
+        <button class="ob-btn" id="googleBtn" style="background:var(--surface); color:var(--text); border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="handleGoogleAuth()">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:18px;">
+          Continue with Google
+        </button>
+
+        <div style="margin-top:24px; font-size:0.9rem; color:var(--text2); cursor:pointer;" onclick="toggleAuthMode()">
           <span id="authToggleText">Need an account? <b>Register</b></span>
         </div>
       </div>
@@ -896,7 +907,10 @@
   <!-- MAIN APP -->
   <div id="app">
     <header>
-      <div class="logo">Ledger</div>
+      <div class="logo" style="display:flex; align-items:center; gap:10px;">
+        <img src="logo.png" alt="Logo" style="width:32px; height:32px; border-radius:8px; object-fit:cover;">
+        Ledger
+      </div>
       <div class="header-right">
         <select class="currency-select" id="currencySelect" onchange="changeCurrency(this.value)">
           <option value="BDT">৳ BDT</option>
@@ -1129,6 +1143,21 @@
 
     function logout() {
       auth.signOut();
+    }
+
+    async function handleGoogleAuth() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const cred = await auth.signInWithPopup(provider);
+        const docSnap = await db.collection('users').doc(cred.user.uid).get();
+        if (!docSnap.exists) {
+          await db.collection('users').doc(cred.user.uid).set({ currency: 'BDT', darkMode: false });
+        }
+      } catch (err) {
+        if (err.code !== 'auth/popup-closed-by-user') {
+          showToast(err.message);
+        }
+      }
     }
 
     function savePrefs() {
